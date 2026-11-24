@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>חזרה על אקסל</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f4f6f9;--card:#fff;--ink:#1f2933;--muted:#5b6672;--line:#dde3ea;
+  --pri:#2f5fb3;--pri2:#e8effa;
+  --good:#1e8a55;--goodbg:#e4f5ec;--bad:#c0392b;--badbg:#fdecea;
+  --c1:#2f5fb3;--c2:#1f8a78;--c3:#8a4fb3;--c4:#c0602e;
+  --nom:#4472C4;--ord:#FFC000;--int:#E0702E;--rat:#7a7a7a;
+}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Rubik",Arial,sans-serif;overflow-x:clip}
+.wrap{max-width:1100px;margin:0 auto;padding:24px max(4vw,12px) 48px}
+h1{margin:0 0 4px;font-size:clamp(26px,4vw,36px);line-height:1.15;text-align:center;color:var(--pri)}
+.lead{margin:0 0 18px;text-align:center;color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px clamp(12px,3vw,26px);box-shadow:0 4px 18px rgba(20,40,60,.05)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.btn{font:inherit;font-weight:500;min-height:44px;padding:10px 20px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.btn.main{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.msg{font-weight:500}.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+button{font:inherit;color:inherit}
+.btn:focus-visible,.chip:focus-visible,.slot:focus-visible,.tog:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+.chip{display:block;background:#fff;border:2px solid #2b3540;border-radius:12px;padding:10px 12px;text-align:center;cursor:pointer;font-weight:500;line-height:1.4}
+.chip small{display:block;font-weight:400;font-size:14px;color:var(--muted)}
+.chip.sel{border-color:var(--pri);box-shadow:0 0 0 3px rgba(47,95,179,.3)}
+.chip.ok{border-color:var(--good);background:var(--goodbg)}
+.chip.no{border-color:var(--bad);background:var(--badbg)}
+.chip:disabled{cursor:default}
+.why{display:block;margin-top:6px;font-size:14px;font-weight:400;color:#7a2a22;text-align:right}
+.pool{display:flex;flex-wrap:wrap;gap:10px;padding:12px;border:2px dashed var(--line);border-radius:14px;background:#fafbfc;margin-bottom:18px;min-height:64px}
+.pool:empty::after{content:"כל הכרטיסים שובצו.";color:var(--muted);align-self:center}
+.hd{color:#fff;font-weight:700;text-align:center;border-radius:12px;padding:10px 6px;font-size:19px}
+.c1{background:var(--c1)}.c2{background:var(--c2)}.c3{background:var(--c3)}.c4{background:var(--c4)}
+.nom{background:var(--nom)}.ord{background:var(--ord);color:#3b2d00}.int{background:var(--int)}.rat{background:var(--rat)}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:Consolas,"Courier New",monospace;font-size:15px}
+.sheet-bg{position:fixed;inset:0;background:rgba(15,25,35,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet-bg[hidden]{display:none}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:82vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.sheet h2{margin:0 0 12px;font-size:19px}
+.sheet .list{display:flex;flex-direction:column;gap:8px}
+.sheet .chip{width:100%}
+@media(min-width:700px){.sheet-bg{align-items:center}.sheet{border-radius:18px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- page ---- */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.nav .n{font-weight:500;color:var(--muted)}
+.q{font-size:20px;font-weight:500;margin:0 0 16px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:560px){.opts{grid-template-columns:minmax(0,1fr)}}
+.opts .chip{font-weight:400}
+.opts .chip.show{border-color:var(--good);border-style:dashed}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>חזרה על אקסל</h1>
+  <p class="lead">בחרו תשובה ולחצו על בדיקה.</p>
+
+<section class="panel">
+  <div class="nav">
+    <button class="btn" id="prev">הקודם</button>
+    <span class="n" id="num"></span>
+    <button class="btn" id="next">הבא</button>
+  </div>
+  <p class="q" id="q"></p>
+  <div class="opts" id="opts"></div>
+  <div class="bar">
+    <button class="btn main" id="check">בדיקה</button>
+    <button class="btn" id="reset">התחלה מחדש</button>
+    <span class="msg" id="msg"></span>
+  </div>
+</section>
+
+</div>
+
+<script>
+{
+
+const $ = id => document.getElementById(id);
+function shuffle(a){
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+
+
+const questions = [
+  {question:'איזו נוסחה משמשת לחיבור טווח של תאים?', options:['SUM','ADD','TOTAL','PLUS'], answer:'SUM'},
+  {question:'איזו נוסחה משמשת למציאת הממוצע של טווח תאים?', options:['MEAN','AVG','AVERAGE','MID'], answer:'AVERAGE'},
+  {question:'איזו נוסחה משמשת לספירת מספר התאים העונים על קריטריון מסוים?', options:['COUNT','COUNTIF','SUMIF','COUNTALL'], answer:'COUNTIF'},
+  {question:'איזו נוסחה משמשת למציאת הערך הגבוה ביותר בטווח תאים?', options:['LARGE','TOP','MAX','HIGH'], answer:'MAX'},
+  {question:'איזו נוסחה משמשת למציאת הערך הנמוך ביותר בטווח תאים?', options:['SMALL','BOTTOM','MIN','LOW'], answer:'MIN'},
+  {question:'איזו נוסחה משמשת למציאת מיקום של תו או טקסט ספציפי בתוך תא?', options:['WHERE','SEARCH','LOCATE','POSITION'], answer:'SEARCH'},
+  {question:'מה ההבדל בין SEARCH ו FIND', options:['FIND עובדת רק באנגלית','אין הבדל','FIND רגישה לאותיות גדולות וקטנות','SEARCH לא עובדת במקרה שיש רווח'], answer:'FIND רגישה לאותיות גדולות וקטנות'},
+  {question:'איזו נוסחה משמשת לחיבור (צירוף) שתי מחרוזות טקסט או יותר ביחד?', options:['CONCATENATE','JOIN','MERGE','COMBINE'], answer:'CONCATENATE'},
+  {question:'איזו נוסחה משמשת לחיפוש ערך בטבלה ולהחזרת ערך מתאים מעמודה אחרת?', options:['FIND','SEARCH','MATCH','VLOOKUP'], answer:'VLOOKUP'},
+  {question:'איזו נוסחה משמשת לבדיקה אם תנאי הוא אמת ולהחזרת ערך אחד אם כן, וערך אחר אם לא?', options:['IF','CONDITION','CHECK','TESTIF'], answer:'IF'},
+  {question:'איזו נוסחה משמשת לחילוץ מספר מסוים של תווים מתחילת מחרוזת טקסט?', options:['LEFTTRIM','LEFTCHAR','LEFT','EXTRACTLEFT'], answer:'LEFT'},
+  {question:'איזו נוסחה משמשת לחילוץ מספר מסוים של תווים מהסוף של מחרוזת טקסט?', options:['RIGHTTRIM','RIGHTCHAR','EXTRACTRIGHT','RIGHT'], answer:'RIGHT'},
+  {question:'איזו נוסחה משמשת להסרת רווחים מיותרים ממחרוזת טקסט?', options:['REMOVESPACESS','TRIM','STRIP','CLEANSPACES'], answer:'TRIM'},
+  {question:'איזו נוסחה משמשת לבדיקה אם כל התנאים בטווח תאים נכונים?', options:['ALLIF','ANDIF','AND','ALLTRUE'], answer:'AND'},
+  {question:'איזו נוסחה משמשת לבדיקה אם אחד מהתנאים בטווח תאים נכון?', options:['ANYIF','OR','ORIF','ANYTRUE'], answer:'OR'},
+  {question:'איזו פונקציה משמשת ליצירת טבלת ציר?', options:['CREATEPIVOT','PIVOTTABLE','INSERTPIVOT','טבלאות ציר נוצרות באמצעות "הוספה" ולא באמצעות נוסחה'], answer:'טבלאות ציר נוצרות באמצעות "הוספה" ולא באמצעות נוסחה'},
+  {question:'איזה מהבאים אינו סוג חישוב שניתן לבצע בטבלת ציר?', options:['סכום','ממוצע','VLOOKUP','ספירה'], answer:'VLOOKUP'},
+  {question:'איזו נוסחה משמשת לספירת מספר התווים במחרוזת טקסט?', options:['COUNTCHAR','CHARCOUNT','LEN','LENGTH'], answer:'LEN'},
+  {question:'איזה מהבאים הוא יתרון של שימוש בטבלת פיבוט?', options:['ממיינת ומסכמת אוטומטית כמויות גדולות של נתונים','מאפשרת חקירה וניתוח נתונים בקלות','מספקת תצוגה מאורגנת ואינטראקטיבית יותר של הנתונים','כל התשובות נכונות'], answer:'כל התשובות נכונות'},
+  {question:'איזו נוסחה משמשת לחישוב החציון של קבוצת ערכים?', options:['MEDIAN','MODE','AVERAGE','MIDDLE'], answer:'MEDIAN'},
+  {question:'איזו נוסחה משמשת לחישוב השכיח של קבוצת ערכים?', options:['FREQUENT','COMMONVALUE','MODE','MOSTCOMMON'], answer:'MODE'},
+  {question:'איזו נוסחה משמשת לחישוב סטיית התקן של קבוצת ערכים?', options:['STDEV.P או STDEV.S','STDDEVIATION','DEVIATION','VAR.P או VAR.S'], answer:'STDEV.P או STDEV.S'},
+  {question:'איזו נוסחה יכולה לשמש לבדיקה אם תאריך נופל בין שני תאריכים אחרים?', options:['BETWEEN','INRANGE','AND','DATECHECK'], answer:'AND'},
+  {question:'איזו נוסחה משמשת להחזרת היום בשבוע עבור תאריך מסוים?', options:['DAYINWEEK','WEEKDAY','DAYNAME','DAYOFWEEK'], answer:'WEEKDAY'},
+  {question:'איזו נוסחה משמשת להצגת השנה מתאריך מסוים?', options:['YEAR','GETYEAR','EXTRACTYEAR','SHOWYEAR'], answer:'YEAR'},
+  {question:'איזו נוסחה משמשת להצגת היום בחודש מתאריך מסוים?', options:['DAY','GETDAY','EXTRACTDAY','SHOWDAY'], answer:'DAY'},
+  {question:'מה אינו יכול לשמש להפרדת עמודת שם מלא, לעמודת שם פרטי ושם משפחה?', options:['טקסט לעמודות','מילוי מהיר','NAME','שילוב של find ופונקציות טקסט נוספות'], answer:'NAME'},
+  // נוספו לפי חומר המבחן
+  {question:'איזו פונקציה סופרת את כל התאים שאינם ריקים (מספרים וגם טקסט)?', options:['COUNT','COUNTA','COUNTBLANK','COUNTIF'], answer:'COUNTA'},
+  {question:'איזו פונקציה סופרת תאים ריקים בטווח?', options:['COUNTBLANK','COUNTA','COUNTEMPTY','ISBLANK'], answer:'COUNTBLANK'},
+  {question:'איזו פונקציה סופרת תאים שעונים על כמה תנאים בבת אחת?', options:['COUNTIF','COUNTIFS','SUMIFS','AND'], answer:'COUNTIFS'},
+  {question:'איזו פונקציה מחברת רק את הערכים שעונים על תנאי אחד?', options:['SUM','SUMIF','COUNTIF','AVERAGEIF'], answer:'SUMIF'},
+  {question:'איזו פונקציה מחברת ערכים שעונים על כמה תנאים?', options:['SUMIF','SUMIFS','COUNTIFS','AVERAGEIF'], answer:'SUMIFS'},
+  {question:'איזו פונקציה מחשבת ממוצע רק לערכים שעונים על תנאי?', options:['AVERAGE','AVERAGEIF','SUMIF','MEDIAN'], answer:'AVERAGEIF'},
+  {question:'איזו פונקציה מחזירה את מספר החודש מתוך תאריך?', options:['MONTH','GETMONTH','DATE','MONTHNAME'], answer:'MONTH'},
+  {question:'איזו פונקציה מחזירה את השעה מתוך ערך של זמן?', options:['HOUR','TIME','MINUTE','CLOCK'], answer:'HOUR'},
+  {question:'איזו פונקציה מחזירה את הדקות מתוך ערך של זמן?', options:['MINUTE','MINUTES','HOUR','SECOND'], answer:'MINUTE'},
+  {question:'איזו פונקציה בונה תאריך משנה, חודש ויום?', options:['DATE','MAKEDATE','TODAY','DAY'], answer:'DATE'},
+  {question:'איזו נוסחה מחשבת את הרבעון העליון (Q3)?', options:['=QUARTILE.EXC(A2:A20,3)','=QUARTILE.EXC(A2:A20,1)','=QUARTER(A2:A20,3)','=MEDIAN(A2:A20)'], answer:'=QUARTILE.EXC(A2:A20,3)'},
+  {question:'איזו פונקציה מחשבת אחוזון?', options:['PERCENTILE.EXC','PERCENT','QUARTILE.EXC','RANK'], answer:'PERCENTILE.EXC'},
+  {question:'איזו נוסחה משמשת לחישוב השונות של קבוצת ערכים?', options:['VAR.P או VAR.S','VARIANCE','STDEV.P או STDEV.S','DEVIATION'], answer:'VAR.P או VAR.S'},
+  {question:'איזה גרף מתאים להצגת שינוי לאורך זמן?', options:['קו','עוגה','פיזור','עמודות מוערמות 100%'], answer:'קו'},
+  {question:'איזה גרף מתאים לבדיקת קשר בין שני משתנים כמותיים?', options:['פיזור','עוגה','קו','עמודות'], answer:'פיזור'},
+  {question:'באיזה כלי נשתמש כדי למחוק שורות שמופיעות פעמיים בנתונים?', options:['הסרת כפילויות','TRIM','מיון','סינון'], answer:'הסרת כפילויות'}
+];
+
+// כמה שאלות אקראיות מהמאגר בכל כניסה
+const PER_ROUND = 20;
+let cur, order, opts, picks, checked;
+function render(){
+  const q = questions[order[cur]];
+  $('num').textContent = `שאלה ${cur + 1} מתוך ${order.length}`;
+  $('prev').disabled = cur === 0;
+  $('next').disabled = cur === order.length - 1;
+  $('q').textContent = q.question;
+  const p = picks[cur], ch = checked[cur];
+  $('opts').innerHTML = opts[cur].map((o, i) => {
+    let cls = 'chip';
+    if (p === i) cls += ch ? (o === q.answer ? ' ok' : ' no') : ' sel';
+    else if (ch && p !== undefined && p !== null && o === q.answer) cls += ' show';
+    return `<button class="${cls}" data-i="${i}" dir="auto">${o}</button>`;
+  }).join('');
+  const m = $('msg');
+  if (!ch) { m.textContent = ''; }
+  else if (p === undefined || p === null) { m.textContent = 'לא נבחרה תשובה.'; m.className = 'msg bad'; }
+  else if (opts[cur][p] === q.answer) { m.textContent = 'נכון!'; m.className = 'msg good'; }
+  else { m.textContent = 'לא נכון. התשובה הנכונה מסומנת במסגרת ירוקה.'; m.className = 'msg bad'; }
+}
+$('opts').addEventListener('click', e => {
+  const b = e.target.closest('.chip');
+  if (!b) return;
+  picks[cur] = +b.dataset.i;
+  checked[cur] = false;
+  render();
+});
+$('check').onclick = () => { checked[cur] = true; render(); };
+$('prev').onclick = () => { if (cur > 0) { cur--; render(); } };
+$('next').onclick = () => { if (cur < order.length - 1) { cur++; render(); } };
+function start(){
+  cur = 0;
+  order = shuffle(questions.map((_, i) => i)).slice(0, PER_ROUND);
+  opts = order.map(i => shuffle([...questions[i].options]));
+  picks = order.map(() => null);
+  checked = order.map(() => false);
+  render();
+}
+$('reset').onclick = start;
+start();
+
+}
+</script>
+</body>
+</html>

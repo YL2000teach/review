@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מאפייני סולמות מדידה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f4f6f9;--card:#fff;--ink:#1f2933;--muted:#5b6672;--line:#dde3ea;
+  --pri:#2f5fb3;--pri2:#e8effa;
+  --good:#1e8a55;--goodbg:#e4f5ec;--bad:#c0392b;--badbg:#fdecea;
+  --c1:#2f5fb3;--c2:#1f8a78;--c3:#8a4fb3;--c4:#c0602e;
+  --nom:#4472C4;--ord:#FFC000;--int:#E0702E;--rat:#7a7a7a;
+}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Rubik",Arial,sans-serif;overflow-x:clip}
+.wrap{max-width:1100px;margin:0 auto;padding:24px max(4vw,12px) 48px}
+h1{margin:0 0 4px;font-size:clamp(26px,4vw,36px);line-height:1.15;text-align:center;color:var(--pri)}
+.lead{margin:0 0 18px;text-align:center;color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px clamp(12px,3vw,26px);box-shadow:0 4px 18px rgba(20,40,60,.05)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.btn{font:inherit;font-weight:500;min-height:44px;padding:10px 20px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.btn.main{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.msg{font-weight:500}.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+button{font:inherit;color:inherit}
+.btn:focus-visible,.chip:focus-visible,.slot:focus-visible,.tog:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+.chip{display:block;background:#fff;border:2px solid #2b3540;border-radius:12px;padding:10px 12px;text-align:center;cursor:pointer;font-weight:500;line-height:1.4}
+.chip small{display:block;font-weight:400;font-size:14px;color:var(--muted)}
+.chip.sel{border-color:var(--pri);box-shadow:0 0 0 3px rgba(47,95,179,.3)}
+.chip.ok{border-color:var(--good);background:var(--goodbg)}
+.chip.no{border-color:var(--bad);background:var(--badbg)}
+.chip:disabled{cursor:default}
+.why{display:block;margin-top:6px;font-size:14px;font-weight:400;color:#7a2a22;text-align:right}
+.pool{display:flex;flex-wrap:wrap;gap:10px;padding:12px;border:2px dashed var(--line);border-radius:14px;background:#fafbfc;margin-bottom:18px;min-height:64px}
+.pool:empty::after{content:"כל הכרטיסים שובצו.";color:var(--muted);align-self:center}
+.hd{color:#fff;font-weight:700;text-align:center;border-radius:12px;padding:10px 6px;font-size:19px}
+.c1{background:var(--c1)}.c2{background:var(--c2)}.c3{background:var(--c3)}.c4{background:var(--c4)}
+.nom{background:var(--nom)}.ord{background:var(--ord);color:#3b2d00}.int{background:var(--int)}.rat{background:var(--rat)}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:Consolas,"Courier New",monospace;font-size:15px}
+.sheet-bg{position:fixed;inset:0;background:rgba(15,25,35,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet-bg[hidden]{display:none}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:82vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.sheet h2{margin:0 0 12px;font-size:19px}
+.sheet .list{display:flex;flex-direction:column;gap:8px}
+.sheet .chip{width:100%}
+@media(min-width:700px){.sheet-bg{align-items:center}.sheet{border-radius:18px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- page ---- */
+.heads,.prow{display:grid;grid-template-columns:minmax(0,1fr) repeat(4,104px);gap:8px}
+.heads{margin-bottom:6px}
+.prow{padding:10px 0;border-top:1px solid var(--line);align-items:stretch}
+.pt{align-self:center;font-weight:500}
+.tog{min-height:48px;border-radius:12px;border:2px solid var(--line);background:#fafbfc;cursor:pointer;font-weight:500}
+.tog:hover{border-color:#b9c4cf}
+.tog[aria-pressed=true]{background:var(--pri2);border-color:var(--pri);color:var(--pri);font-weight:700}
+.tog[aria-pressed=true]::before{content:"✓ "}
+.tog.ok{border-color:var(--good);background:var(--goodbg)}
+.tog.no{border-color:var(--bad);background:var(--badbg)}
+.tog .nm{display:none}
+@media(max-width:700px){
+  .heads{display:none}
+  .prow{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .pt{grid-column:1/-1}
+  .tog .nm{display:inline}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>מאפייני סולמות מדידה</h1>
+  <p class="lead">סמנו בכל שורה את הסולמות שבהם המאפיין מתקיים.</p>
+
+<section class="panel">
+  <div class="heads"><div></div>
+    <div class="hd nom">שמי</div><div class="hd ord">סדר</div><div class="hd int">רווח</div><div class="hd rat">מנה</div>
+  </div>
+  <div id="rows"></div>
+  <div class="bar">
+    <button class="btn main" id="check">בדיקה</button>
+    <button class="btn" id="reset">התחלה מחדש</button>
+    <span class="msg" id="msg"></span>
+  </div>
+</section>
+
+</div>
+
+<script>
+{
+
+const $ = id => document.getElementById(id);
+function shuffle(a){
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+
+
+const SCALES = ['שמי','סדר','רווח','מנה'];
+// הסדר בכל מערך: שמי, סדר, רווח, מנה
+const PROPS = [
+  {text:'הערכים מחולקים לקטגוריות (שווה / שונה)', ans:[1,1,1,1]},
+  {text:'יש סדר בין הערכים (גדול / קטן)', ans:[0,1,1,1]},
+  {text:'מרווחים שווים בעלי משמעות (אפשר לחבר ולחסר)', ans:[0,0,1,1]},
+  {text:'יש אפס מוחלט (אפשר לומר "פי 2")', ans:[0,0,0,1]},
+  {text:'אפשר לחשב שכיח', ans:[1,1,1,1]},
+  {text:'אפשר לחשב חציון', ans:[0,1,1,1]},
+  {text:'אפשר לחשב ממוצע', ans:[0,0,1,1]}
+];
+let marks, checked;
+function render(){
+  $('rows').innerHTML = PROPS.map((p, r) => `<div class="prow"><div class="pt">${p.text}</div>` +
+    SCALES.map((s, c) => {
+      let cls = 'tog';
+      if (checked) cls += marks[r][c] === p.ans[c] ? ' ok' : ' no';
+      return `<button class="${cls}" data-r="${r}" data-c="${c}" aria-pressed="${marks[r][c] === 1}" aria-label="${p.text}: ${s}"><span class="nm">${s}</span></button>`;
+    }).join('') + '</div>').join('');
+}
+$('rows').addEventListener('click', e => {
+  const b = e.target.closest('.tog');
+  if (!b) return;
+  const r = +b.dataset.r, c = +b.dataset.c;
+  marks[r][c] = marks[r][c] ? 0 : 1;
+  checked = false;
+  $('msg').textContent = '';
+  render();
+});
+$('check').onclick = () => {
+  checked = true;
+  let wrong = 0;
+  PROPS.forEach((p, r) => p.ans.forEach((a, c) => { if (marks[r][c] !== a) wrong++; }));
+  const m = $('msg');
+  if (!wrong) { m.textContent = 'הכל נכון. כל סולם כולל את המאפיינים של הסולם שלפניו.'; m.className = 'msg good'; }
+  else { m.textContent = 'יש תאים אדומים לתיקון.'; m.className = 'msg bad'; }
+  render();
+};
+function start(){
+  marks = PROPS.map(() => [0,0,0,0]);
+  checked = false;
+  $('msg').textContent = '';
+  render();
+}
+$('reset').onclick = start;
+start();
+
+}
+</script>
+</body>
+</html>

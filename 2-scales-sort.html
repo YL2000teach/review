@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מיון משתנים לסולמות מדידה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f4f6f9;--card:#fff;--ink:#1f2933;--muted:#5b6672;--line:#dde3ea;
+  --pri:#2f5fb3;--pri2:#e8effa;
+  --good:#1e8a55;--goodbg:#e4f5ec;--bad:#c0392b;--badbg:#fdecea;
+  --c1:#2f5fb3;--c2:#1f8a78;--c3:#8a4fb3;--c4:#c0602e;
+  --nom:#4472C4;--ord:#FFC000;--int:#E0702E;--rat:#7a7a7a;
+}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Rubik",Arial,sans-serif;overflow-x:clip}
+.wrap{max-width:1100px;margin:0 auto;padding:24px max(4vw,12px) 48px}
+h1{margin:0 0 4px;font-size:clamp(26px,4vw,36px);line-height:1.15;text-align:center;color:var(--pri)}
+.lead{margin:0 0 18px;text-align:center;color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px clamp(12px,3vw,26px);box-shadow:0 4px 18px rgba(20,40,60,.05)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.btn{font:inherit;font-weight:500;min-height:44px;padding:10px 20px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.btn.main{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.msg{font-weight:500}.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+button{font:inherit;color:inherit}
+.btn:focus-visible,.chip:focus-visible,.slot:focus-visible,.tog:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+.chip{display:block;background:#fff;border:2px solid #2b3540;border-radius:12px;padding:10px 12px;text-align:center;cursor:pointer;font-weight:500;line-height:1.4}
+.chip small{display:block;font-weight:400;font-size:14px;color:var(--muted)}
+.chip.sel{border-color:var(--pri);box-shadow:0 0 0 3px rgba(47,95,179,.3)}
+.chip.ok{border-color:var(--good);background:var(--goodbg)}
+.chip.no{border-color:var(--bad);background:var(--badbg)}
+.chip:disabled{cursor:default}
+.why{display:block;margin-top:6px;font-size:14px;font-weight:400;color:#7a2a22;text-align:right}
+.pool{display:flex;flex-wrap:wrap;gap:10px;padding:12px;border:2px dashed var(--line);border-radius:14px;background:#fafbfc;margin-bottom:18px;min-height:64px}
+.pool:empty::after{content:"כל הכרטיסים שובצו.";color:var(--muted);align-self:center}
+.hd{color:#fff;font-weight:700;text-align:center;border-radius:12px;padding:10px 6px;font-size:19px}
+.c1{background:var(--c1)}.c2{background:var(--c2)}.c3{background:var(--c3)}.c4{background:var(--c4)}
+.nom{background:var(--nom)}.ord{background:var(--ord);color:#3b2d00}.int{background:var(--int)}.rat{background:var(--rat)}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:Consolas,"Courier New",monospace;font-size:15px}
+.sheet-bg{position:fixed;inset:0;background:rgba(15,25,35,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet-bg[hidden]{display:none}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:82vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.sheet h2{margin:0 0 12px;font-size:19px}
+.sheet .list{display:flex;flex-direction:column;gap:8px}
+.sheet .chip{width:100%}
+@media(min-width:700px){.sheet-bg{align-items:center}.sheet{border-radius:18px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- page ---- */
+.pool .chip{flex:0 1 auto}
+.zones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:760px){.zones{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.zone{border:2px solid var(--line);border-radius:14px;min-height:200px;background:#fff;display:flex;flex-direction:column}
+.zone .hd{border-radius:12px 12px 0 0}
+.zone .list{display:flex;flex-direction:column;gap:8px;padding:10px;flex:1}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>מיון משתנים לסולמות מדידה</h1>
+  <p class="lead">לחצו על משתנה ובחרו את סולם המדידה שלו.</p>
+
+<section class="panel">
+  <div class="pool" id="pool"></div>
+  <div class="zones" id="zones"></div>
+  <div class="bar">
+    <button class="btn main" id="check">בדיקה</button>
+    <button class="btn" id="reset">התחלה מחדש</button>
+    <span class="msg" id="msg"></span>
+  </div>
+</section>
+
+</div>
+
+<div class="sheet-bg" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle"></h2>
+    <div class="list" id="sheetList"></div>
+    <div class="bar"><button class="btn" id="sheetClose">ביטול</button></div>
+  </div>
+</div>
+
+<script>
+{
+
+const $ = id => document.getElementById(id);
+function shuffle(a){
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+
+function closeSheet(){ $('sheet').hidden = true; }
+function openSheet(title, options, onPick){
+  $('sheetTitle').textContent = title;
+  $('sheetList').innerHTML = options.map((o, i) =>
+    `<button class="chip ${o.cls || ''}" data-i="${i}">${o.html}</button>`).join('');
+  $('sheetList').onclick = e => {
+    const b = e.target.closest('[data-i]');
+    if (!b) return;
+    closeSheet();
+    onPick(options[+b.dataset.i].value);
+  };
+  $('sheet').hidden = false;
+  const first = $('sheetList').querySelector('button');
+  if (first) first.focus();
+}
+$('sheetClose').onclick = closeSheet;
+$('sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+
+const SCALES = [
+  {key:'nom', name:'שמי'}, {key:'ord', name:'סדר'},
+  {key:'int', name:'רווח'}, {key:'rat', name:'מנה'}
+];
+// scale = התשובה הנכונה, why = הסבר שמופיע בטעות
+const VARS = [
+  {id:'v1', name:'גובה אדם', scale:'rat', why:'יש אפס מוחלט: 180 ס"מ הוא פי 2 מ־90 ס"מ.'},
+  {id:'v2', name:'מקצוע', scale:'nom', why:'קטגוריות בלי סדר: אף מקצוע אינו "גדול" מאחר.'},
+  {id:'v3', name:'גיל', scale:'rat', why:'יש אפס מוחלט: בן 40 מבוגר פי 2 מבן 20.'},
+  {id:'v4', name:'דרגות בצבא', scale:'ord', why:'יש היררכיה, אבל המרחק בין דרגה לדרגה אינו שווה ואינו נמדד.'},
+  {id:'v5', name:'טמפרטורה בצלזיוס', scale:'int', why:'מרווחים שווים, אבל 0°C אינו היעדר חום, ולכן 20° אינו חם פי 2 מ־10°.'},
+  {id:'v6', name:'שכר לשעה', scale:'rat', why:'יש אפס מוחלט: 80 ש"ח הוא פי 2 מ־40 ש"ח.'},
+  {id:'v7', name:'כיתה בבית ספר', sub:"(ז', ח', ט')", scale:'ord', why:'יש סדר בין השכבות, אבל אין יחידת מדידה ואין משמעות לחשבון עליהן.'},
+  {id:'v15', name:'צבע עיניים', scale:'nom', why:'קטגוריות בלי סדר: אף צבע אינו "גדול" מצבע אחר.'},
+  {id:'v16', name:'עיר מגורים', scale:'nom', why:'שמות של מקומות בלבד. אין סדר ואין משמעות לחישוב.'},
+  {id:'v9', name:'מרחק בין ערים', scale:'rat', why:'יש אפס מוחלט: 100 ק"מ הוא פי 2 מ־50 ק"מ.'},
+  {id:'v10', name:'מספר תעודת זהות', scale:'nom', why:'המספר הוא מזהה בלבד. אין משמעות לסדר או לחישוב.'},
+  {id:'v11', name:'גודל כוס קפה', sub:'(קטן, בינוני, גדול)', scale:'ord', why:'יש סדר בין הגדלים, אבל המרווחים ביניהם אינם מוגדרים.'},
+  {id:'v12', name:'סכום מכירות', scale:'rat', why:'יש אפס מוחלט: 0 ש"ח פירושו שלא נמכר כלום.'},
+  {id:'v13', name:'זמן כרונולוגי', sub:'(לפני הספירה)', scale:'int', why:'השנים מרווחות באופן שווה, אבל נקודת האפס נבחרה שרירותית.'},
+  {id:'v14', name:'סוגי מדליות בתחרות', scale:'ord', why:'זהב, כסף, ארד: יש סדר, אבל אין מרווחים מדידים.'}
+];
+const byId = id => VARS.find(v => v.id === id);
+const scaleName = k => SCALES.find(s => s.key === k).name;
+let place, order, checked;
+
+$('zones').innerHTML = SCALES.map(s =>
+  `<div class="zone"><div class="hd ${s.key}">${s.name}</div><div class="list" data-zone="${s.key}"></div></div>`).join('');
+
+function chip(v){
+  let cls = 'chip', why = '';
+  if (checked && place[v.id] !== 'pool') {
+    if (place[v.id] === v.scale) cls += ' ok';
+    else { cls += ' no'; why = `<span class="why">סולם ${scaleName(v.scale)}. ${v.why}</span>`; }
+  }
+  return `<button class="${cls}" data-id="${v.id}">${v.name}${v.sub ? `<small>${v.sub}</small>` : ''}${why}</button>`;
+}
+function render(){
+  $('pool').innerHTML = order.filter(id => place[id] === 'pool').map(id => chip(byId(id))).join('');
+  document.querySelectorAll('[data-zone]').forEach(z => {
+    z.innerHTML = order.filter(id => place[id] === z.dataset.zone).map(id => chip(byId(id))).join('');
+  });
+}
+document.querySelector('.panel').addEventListener('click', e => {
+  const c = e.target.closest('.chip[data-id]');
+  if (!c) return;
+  const id = c.dataset.id;
+  const opts = SCALES.map(s => ({html:s.name, value:s.key, cls:''}));
+  if (place[id] !== 'pool') opts.push({html:'החזרה לרשימה', value:'pool', cls:''});
+  openSheet(`לאיזה סולם שייך "${byId(id).name}"?`, opts, val => {
+    place[id] = val;
+    checked = false;
+    $('msg').textContent = '';
+    render();
+  });
+});
+$('check').onclick = () => {
+  checked = true;
+  const left = VARS.filter(v => place[v.id] === 'pool').length;
+  const wrong = VARS.filter(v => place[v.id] !== 'pool' && place[v.id] !== v.scale).length;
+  const m = $('msg');
+  if (!left && !wrong) { m.textContent = 'כל המשתנים מוינו נכון.'; m.className = 'msg good'; }
+  else {
+    m.textContent = (wrong ? 'בכרטיסים האדומים יש הסבר.' : '') + (left ? ` נותרו ${left} משתנים למיון.` : '');
+    m.className = 'msg bad';
+  }
+  render();
+};
+function start(){
+  place = {};
+  VARS.forEach(v => place[v.id] = 'pool');
+  order = shuffle(VARS.map(v => v.id));
+  checked = false;
+  $('msg').textContent = '';
+  render();
+}
+$('reset').onclick = start;
+start();
+
+}
+</script>
+</body>
+</html>

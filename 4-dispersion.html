@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מאפייני מדדי פיזור</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f4f6f9;--card:#fff;--ink:#1f2933;--muted:#5b6672;--line:#dde3ea;
+  --pri:#2f5fb3;--pri2:#e8effa;
+  --good:#1e8a55;--goodbg:#e4f5ec;--bad:#c0392b;--badbg:#fdecea;
+  --c1:#2f5fb3;--c2:#1f8a78;--c3:#8a4fb3;--c4:#c0602e;
+  --nom:#4472C4;--ord:#FFC000;--int:#E0702E;--rat:#7a7a7a;
+}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Rubik",Arial,sans-serif;overflow-x:clip}
+.wrap{max-width:1100px;margin:0 auto;padding:24px max(4vw,12px) 48px}
+h1{margin:0 0 4px;font-size:clamp(26px,4vw,36px);line-height:1.15;text-align:center;color:var(--pri)}
+.lead{margin:0 0 18px;text-align:center;color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px clamp(12px,3vw,26px);box-shadow:0 4px 18px rgba(20,40,60,.05)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.btn{font:inherit;font-weight:500;min-height:44px;padding:10px 20px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.btn.main{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.msg{font-weight:500}.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+button{font:inherit;color:inherit}
+.btn:focus-visible,.chip:focus-visible,.slot:focus-visible,.tog:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+.chip{display:block;background:#fff;border:2px solid #2b3540;border-radius:12px;padding:10px 12px;text-align:center;cursor:pointer;font-weight:500;line-height:1.4}
+.chip small{display:block;font-weight:400;font-size:14px;color:var(--muted)}
+.chip.sel{border-color:var(--pri);box-shadow:0 0 0 3px rgba(47,95,179,.3)}
+.chip.ok{border-color:var(--good);background:var(--goodbg)}
+.chip.no{border-color:var(--bad);background:var(--badbg)}
+.chip:disabled{cursor:default}
+.why{display:block;margin-top:6px;font-size:14px;font-weight:400;color:#7a2a22;text-align:right}
+.pool{display:flex;flex-wrap:wrap;gap:10px;padding:12px;border:2px dashed var(--line);border-radius:14px;background:#fafbfc;margin-bottom:18px;min-height:64px}
+.pool:empty::after{content:"כל הכרטיסים שובצו.";color:var(--muted);align-self:center}
+.hd{color:#fff;font-weight:700;text-align:center;border-radius:12px;padding:10px 6px;font-size:19px}
+.c1{background:var(--c1)}.c2{background:var(--c2)}.c3{background:var(--c3)}.c4{background:var(--c4)}
+.nom{background:var(--nom)}.ord{background:var(--ord);color:#3b2d00}.int{background:var(--int)}.rat{background:var(--rat)}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:Consolas,"Courier New",monospace;font-size:15px}
+.sheet-bg{position:fixed;inset:0;background:rgba(15,25,35,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet-bg[hidden]{display:none}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:82vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.sheet h2{margin:0 0 12px;font-size:19px}
+.sheet .list{display:flex;flex-direction:column;gap:8px}
+.sheet .chip{width:100%}
+@media(min-width:700px){.sheet-bg{align-items:center}.sheet{border-radius:18px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- page ---- */
+.pool .chip{flex:1 1 220px;max-width:360px;font-weight:400}
+.grid{display:grid;grid-template-columns:130px repeat(var(--cols),minmax(0,1fr));gap:8px}
+.rl{display:flex;align-items:center;justify-content:center;background:#f2f5f8;border-radius:12px;padding:8px;font-weight:500;text-align:center}
+.slot{min-height:88px;border:2px dashed #b9c4cf;border-radius:12px;background:#fafbfc;padding:10px;cursor:pointer;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:4px;line-height:1.4}
+.slot:hover{border-color:var(--pri)}
+.slot .sl{display:none;font-size:13px;color:var(--muted);font-weight:500}
+.slot .ph{color:#9aa6b2;font-size:26px;line-height:1}
+.slot.filled{border-style:solid;border-color:#2b3540;background:#fff}
+.slot.ok{border-color:var(--good);background:var(--goodbg)}
+.slot.no{border-color:var(--bad);background:var(--badbg)}
+.grid.armed .slot{border-color:var(--pri)}
+@media(max-width:700px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .grid .corner,.grid .rl{display:none}
+  .grid>*{order:var(--o)}
+  .grid .hd{margin-top:12px}
+  .slot .sl{display:block}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>מאפייני מדדי פיזור</h1>
+  <p class="lead">לחצו על תא ובחרו את המשפט שמתאים לו.</p>
+
+<section class="panel">
+  <div class="pool" id="pool"></div>
+  <div class="grid" id="grid"></div>
+  <div class="bar">
+    <button class="btn main" id="check">בדיקה</button>
+    <button class="btn" id="reset">התחלה מחדש</button>
+    <span class="msg" id="msg"></span>
+  </div>
+</section>
+
+</div>
+
+<div class="sheet-bg" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle"></h2>
+    <div class="list" id="sheetList"></div>
+    <div class="bar"><button class="btn" id="sheetClose">ביטול</button></div>
+  </div>
+</div>
+
+<script>
+{
+
+const $ = id => document.getElementById(id);
+function shuffle(a){
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+
+function closeSheet(){ $('sheet').hidden = true; }
+function openSheet(title, options, onPick){
+  $('sheetTitle').textContent = title;
+  $('sheetList').innerHTML = options.map((o, i) =>
+    `<button class="chip ${o.cls || ''}" data-i="${i}">${o.html}</button>`).join('');
+  $('sheetList').onclick = e => {
+    const b = e.target.closest('[data-i]');
+    if (!b) return;
+    closeSheet();
+    onPick(options[+b.dataset.i].value);
+  };
+  $('sheet').hidden = false;
+  const first = $('sheetList').querySelector('button');
+  if (first) first.focus();
+}
+$('sheetClose').onclick = closeSheet;
+$('sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+
+const COLS = [
+  {name:'טווח', cls:'c1'}, {name:'טווח בין רבעוני', cls:'c2'},
+  {name:'שונות', cls:'c3'}, {name:'סטיית תקן', cls:'c4'}
+];
+const X = s => `<span class="ltr">${s}</span>`;
+// answers בסדר העמודות: טווח, טווח בין רבעוני, שונות, סטיית תקן
+const ROWS = [
+  {label:'הסבר', answers:[
+    'המרחק בין הערך הגדול ביותר לקטן ביותר',
+    'הטווח שבו נמצאים 50% הערכים האמצעיים',
+    'ממוצע ריבועי המרחקים של הערכים מהממוצע',
+    'בערך המרחק הממוצע של הערכים מהממוצע']},
+  {label:'חישוב', answers:[
+    'נחסיר את הערך הקטן ביותר מהערך הגדול ביותר',
+    'נחסיר את הרבעון התחתון מהרבעון העליון',
+    'לכל ערך נחשב את המרחק מהממוצע, נעלה בריבוע ונחשב ממוצע',
+    'נוציא שורש מהשונות']},
+  {label:'מאפיינים נוספים', answers:[
+    'מבוסס על שני ערכים בלבד, ולכן מושפע מאוד מערכים קיצוניים',
+    'לא מושפע מערכים קיצוניים',
+    'יחידות המידה שלה בריבוע, ולכן קשה לפרש אותה',
+    'באותן יחידות מידה כמו הנתונים, ומושפעת מערכים קיצוניים']},
+  {label:'באקסל', answers:[
+    X('=MAX(A2:A20)-MIN(A2:A20)'),
+    X('=QUARTILE.EXC(A2:A20,3)-QUARTILE.EXC(A2:A20,1)'),
+    X('=VAR.P(A2:A20)') + ' או ' + X('=VAR.S(A2:A20)'),
+    X('=STDEV.P(A2:A20)') + ' או ' + X('=STDEV.S(A2:A20)')]}
+];
+
+const R = ROWS.length, C = COLS.length;
+const ITEMS = [];
+ROWS.forEach((row, r) => COLS.forEach((col, c) => ITEMS.push({id:`${r}-${c}`, text:row.answers[c]})));
+const itemById = id => ITEMS.find(i => i.id === id);
+let place, order, selected, checked;   // place[slotKey] = itemId
+
+const grid = $('grid');
+grid.style.setProperty('--cols', C);
+let gh = `<div class="corner"></div>`;
+COLS.forEach((col, c) => { gh += `<div class="hd ${col.cls}" style="--o:${c * (R + 1)}">${col.name}</div>`; });
+ROWS.forEach((row, r) => {
+  gh += `<div class="rl">${row.label}</div>`;
+  COLS.forEach((col, c) => {
+    gh += `<button class="slot" data-k="${r}-${c}" style="--o:${c * (R + 1) + r + 1}"></button>`;
+  });
+});
+grid.innerHTML = gh;
+
+const placedIds = () => Object.values(place);
+function render(){
+  const inPool = order.filter(id => !placedIds().includes(id));
+  $('pool').innerHTML = inPool.map(id =>
+    `<button class="chip${selected === id ? ' sel' : ''}" data-id="${id}">${itemById(id).text}</button>`).join('');
+  grid.classList.toggle('armed', !!selected);
+  grid.querySelectorAll('.slot').forEach(s => {
+    const k = s.dataset.k, [r, c] = k.split('-').map(Number);
+    const id = place[k];
+    let cls = 'slot';
+    if (id) { cls += ' filled'; if (checked) cls += id === k ? ' ok' : ' no'; }
+    s.className = cls;
+    s.setAttribute('aria-label', `${COLS[c].name}, ${ROWS[r].label}`);
+    s.innerHTML = `<span class="sl">${ROWS[r].label}</span>` + (id ? itemById(id).text : '<span class="ph">+</span>');
+  });
+}
+function putIn(k, id){
+  for (const key in place) if (place[key] === id) delete place[key];
+  if (id) place[k] = id; else delete place[k];
+  selected = null;
+  checked = false;
+  $('msg').textContent = '';
+  render();
+}
+$('pool').addEventListener('click', e => {
+  const c = e.target.closest('.chip');
+  if (!c) return;
+  selected = selected === c.dataset.id ? null : c.dataset.id;
+  render();
+});
+grid.addEventListener('click', e => {
+  const s = e.target.closest('.slot');
+  if (!s) return;
+  const k = s.dataset.k;
+  if (selected) { putIn(k, selected); return; }
+  const [r, c] = k.split('-').map(Number);
+  const opts = order.filter(id => !placedIds().includes(id)).map(id => ({html:itemById(id).text, value:id}));
+  if (place[k]) opts.push({html:'הוצאת הכרטיס מהתא', value:null});
+  if (!opts.length) return;
+  openSheet(`${COLS[c].name} / ${ROWS[r].label}`, opts, id => putIn(k, id));
+});
+$('check').onclick = () => {
+  checked = true;
+  const filled = Object.keys(place).length;
+  const wrong = Object.keys(place).filter(k => place[k] !== k).length;
+  const m = $('msg');
+  if (filled === ITEMS.length && !wrong) { m.textContent = 'הכל נכון.'; m.className = 'msg good'; }
+  else {
+    m.textContent = (wrong ? 'יש תאים אדומים לתיקון.' : '') + (filled < ITEMS.length ? ` נותרו ${ITEMS.length - filled} תאים ריקים.` : '');
+    m.className = 'msg bad';
+  }
+  render();
+};
+function start(){
+  place = {};
+  order = shuffle(ITEMS.map(i => i.id));
+  selected = null;
+  checked = false;
+  $('msg').textContent = '';
+  render();
+}
+$('reset').onclick = start;
+start();
+
+}
+</script>
+</body>
+</html>
